@@ -1,9 +1,11 @@
 def print_state(game_state):
     for i in range(3):
-        row = game_state[i]
-        print(" %s | %s | %s " % (row[0], row[1], row[2]))
+        row_i = game_state[i]
+        print(" %s | %s | %s " % (row_i[0], row_i[1], row_i[2]))
         if i != 2:
             print("-----------")
+        else:
+            print("\n===========\n")
 
 
 def get_opponent(player):
@@ -111,11 +113,50 @@ def get_winner(game_state):
     return ' '
 
 
+def is_space_available(current_state):
+    for r in range(3):
+        for c in range(3):
+            if current_state[r][c] == ' ':
+                return True
+    return False
+
+
+currentPlayer = 'o'
 gameState = [
-    [' ', ' ', 'x'],
-    [' ', 'x', 'o'],
-    ['o', ' ', ' ']
+    [' ', ' ', ' '],
+    [' ', 'x', ' '],
+    [' ', ' ', ' ']
 ]
 
-next_state = get_next_state(gameState, 'x')
-print_state(next_state)
+print_state(gameState)
+while is_space_available(gameState):
+    if currentPlayer == 'o':
+        print("Enter 1-9")
+
+        index = int(input()) - 1
+        row = int(index / 3)
+        col = index % 3
+
+        if gameState[row][col] != ' ':
+            print("Space not available!")
+            continue
+
+        gameState[row][col] = 'o'
+        print_state(gameState)
+
+        if get_winner(gameState) == 'o':
+            print("You win!")
+            break
+        currentPlayer = 'x'
+
+    else:
+        print("Computer's turn...")
+        gameState = get_next_state(gameState, 'x')
+        print_state(gameState)
+        if get_winner(gameState) == 'x':
+            print("Computer wins!")
+            break
+        currentPlayer = 'o'
+
+if not is_space_available(gameState):
+    print("Draw!")
