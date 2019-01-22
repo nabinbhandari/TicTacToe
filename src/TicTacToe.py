@@ -1,3 +1,6 @@
+import random
+
+
 def print_state(game_state):
     for i in range(3):
         row_i = game_state[i]
@@ -18,15 +21,6 @@ def get_player(game_state, x, y):
     return game_state[y][x]
 
 
-def get_remaining_places(game_state):
-    remaining = 0
-    for i in range(3):
-        for j in range(3):
-            if game_state[i][j] == ' ':
-                remaining += 1
-    return remaining
-
-
 # Return new state by putting player in position r, c of current state.
 def get_new_state(current_state, r, c, player):
     new_state = [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']]
@@ -40,8 +34,6 @@ def get_new_state(current_state, r, c, player):
 
 
 def get_score(new_state, player):
-    remaining_places = get_remaining_places(new_state)
-
     winner = get_winner(new_state)
     if winner == player:
         return 1
@@ -50,7 +42,7 @@ def get_score(new_state, player):
     if winner == opponent:
         return -1
 
-    if remaining_places == 0:
+    if not is_space_available(new_state):
         return 0
 
     child_states = get_child_states(new_state, opponent)
@@ -74,13 +66,26 @@ def get_child_states(current_state, player):
 
 def get_next_state(current_state, player):
     max_score = -99999
-    best_state = None
 
     child_states = get_child_states(current_state, player)
+    best_state = child_states[0]
+
+    opponent = get_opponent(player)
+
     for child_state in child_states:
         winner = get_winner(child_state)
         if winner == player:
             return child_state
+
+        grand_child_states = get_child_states(child_state, opponent)
+
+        try:
+            for grand_child_state in grand_child_states:
+                if get_winner(grand_child_state) == opponent:
+                    # https://stackoverflow.com/a/40957772/5137352
+                    raise IndexError
+        except IndexError:
+            continue
 
         score = get_score(child_state, player)
         if score > max_score:
@@ -121,12 +126,18 @@ def is_space_available(current_state):
     return False
 
 
-currentPlayer = 'o'
+currentPlayer = random.choice(['x', 'o'])
 gameState = [
     [' ', ' ', ' '],
-    [' ', 'x', ' '],
+    [' ', ' ', ' '],
     [' ', ' ', ' ']
 ]
+
+# If computer plays first, it goes in the middle,
+# so doing it manually to save some time.
+if currentPlayer == 'x':
+    gameState[1][1] = 'x'
+    currentPlayer = 'o'
 
 print_state(gameState)
 while is_space_available(gameState):
@@ -146,7 +157,7 @@ while is_space_available(gameState):
 
         if get_winner(gameState) == 'o':
             print("You win!")
-            break
+            exit(0)
         currentPlayer = 'x'
 
     else:
@@ -155,7 +166,7 @@ while is_space_available(gameState):
         print_state(gameState)
         if get_winner(gameState) == 'x':
             print("Computer wins!")
-            break
+            exit(0)
         currentPlayer = 'o'
 
 if not is_space_available(gameState):
